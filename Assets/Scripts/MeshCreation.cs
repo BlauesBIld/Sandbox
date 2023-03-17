@@ -6,53 +6,33 @@ using UnityEngine;
 public class MeshCreation : MonoBehaviour
 {
     float seed = 0;
-    float[,] heightMap;
     float flattenFactor = 0.01f;
+
+    private Dictionary<Vector3, Chunk> loadedChunks;
 
     void Awake()
     {
-        heightMap = new float[32, 32];
+        loadedChunks = new Dictionary<Vector3, Chunk>();
     }
 
     void Start()
     {
-        for (int i = 0; i < Chunk._chunkSize; i++)
+        CreateNewChunkAt(new Vector3(0, 0, 0));
+    }
+
+    private void CreateNewChunkAt(Vector3 chunkPosition)
+    {
+        float[,] heightMap = new float[Chunk.CHUNK_SIZE, Chunk.CHUNK_SIZE];
+        for (int x = 0; x < Chunk.CHUNK_SIZE; x++)
         {
-            for (int j = 0; j < Chunk._chunkSize; j++)
+            for (int z = 0; z < Chunk.CHUNK_SIZE; z++)
             {
-                heightMap[i, j] = Mathf.Floor(Mathf.PerlinNoise(i * flattenFactor + 0.1f, j * flattenFactor + 0.1f) * 256);
+                Vector3 worldPosition = chunkPosition + new Vector3(x, 0, z);
+
+                heightMap[x, z] = Mathf.PerlinNoise(worldPosition.x * 0.1f, worldPosition.z * 0.1f);
             }
         }
-
-        Chunk newChunk = new Chunk();
-        newChunk.FillBlocksForChunk(heightMap);
         
-        CreateBlockedMesh();
-    }
-    
-    void CreateBlockedMesh()
-    {
-        GameObject newMeshObj = new GameObject();
-        newMeshObj.AddComponent<MeshFilter>();
-        newMeshObj.AddComponent<MeshRenderer>();
-        Mesh mesh = newMeshObj.GetComponent<MeshFilter>().mesh;
-
-        mesh.Clear();
-
-        // make changes to the Mesh by creating arrays which contain the new values
-        mesh.vertices = new Vector3[]
-        {
-            new Vector3(0, 0, 0), new Vector3(0, 0, 1), new Vector3(1, 0, 1), new Vector3(1, 0, 0)
-        };
-        mesh.uv = new Vector2[]
-        {
-            new Vector2(0, 0), new Vector2(0, 1), new Vector2(1, 1)
-        };
-        mesh.triangles = new int[]
-        {
-            0, 1, 2, 0, 2, 3
-        };
-
-        newMeshObj.transform.position = new Vector3(0, 1, 0);
+        loadedChunks.Add(chunkPosition, Chunk.InstantiateNewChunk(heightMap));
     }
 }
