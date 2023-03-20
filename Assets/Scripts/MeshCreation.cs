@@ -29,10 +29,10 @@ public class MeshCreation : MonoBehaviour
             {
                 Vector3 worldPosition = chunkPosition + new Vector3(x, 0, z);
 
-                heightMap[x, z] = Mathf.PerlinNoise(worldPosition.x * 0.1f, worldPosition.z * 0.1f);
+                heightMap[x, z] = Mathf.Floor(5 * Mathf.PerlinNoise(worldPosition.x * 0.1f, worldPosition.z * 0.1f));
             }
         }
-        
+
         loadedChunks.Add(chunkPosition, Chunk.InstantiateNewChunk(heightMap));
     }
 }
