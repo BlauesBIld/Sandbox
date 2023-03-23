@@ -8,7 +8,9 @@ public class MeshCreation : MonoBehaviour
     float seed = 0;
     float flattenFactor = 0.01f;
 
-    private Dictionary<Vector3, Chunk> loadedChunks;
+    Dictionary<Vector3, Chunk> loadedChunks;
+
+    float worldSize = 3;
 
     void Awake()
     {
@@ -17,10 +19,16 @@ public class MeshCreation : MonoBehaviour
 
     void Start()
     {
-        CreateNewChunkAt(new Vector3(0, 0, 0));
+        for (int i = 0; i < worldSize; i++)
+        {
+            for (int j = 0; j < worldSize; j++)
+            {
+                CreateNewChunkAt(new Vector3(i * Chunk.CHUNK_SIZE, 0, j * Chunk.CHUNK_SIZE));
+            }
+        }
     }
 
-    private void CreateNewChunkAt(Vector3 chunkPosition)
+    void CreateNewChunkAt(Vector3 chunkPosition)
     {
         float[,] heightMap = new float[Chunk.CHUNK_SIZE, Chunk.CHUNK_SIZE];
         for (int x = 0; x < Chunk.CHUNK_SIZE; x++)
@@ -33,6 +41,6 @@ public class MeshCreation : MonoBehaviour
             }
         }
 
-        loadedChunks.Add(chunkPosition, Chunk.InstantiateNewChunk(heightMap));
+        loadedChunks.Add(chunkPosition, Chunk.InstantiateNewChunk(chunkPosition, heightMap));
     }
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class Chunk : MonoBehaviour
@@ -62,7 +63,7 @@ public class Chunk : MonoBehaviour
         gameObject.AddComponent<MeshCollider>();
     }
 
-    public static Chunk InstantiateNewChunk(float[,] heightMap)
+    public static Chunk InstantiateNewChunk(Vector3 chunkPosition, float[,] heightMap)
     {
         GameObject newChunkGameObject = new GameObject();
         newChunkGameObject.name = "Chunk";
@@ -71,6 +72,8 @@ public class Chunk : MonoBehaviour
         newChunk.heightMap = heightMap;
         newChunk.FillBlocksForChunk();
         newChunk.CreateBlockedMesh();
+        
+        newChunkGameObject.transform.position = chunkPosition;
 
         return newChunk;
     }
