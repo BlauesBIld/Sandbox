@@ -10,10 +10,15 @@ public class Chunk : MonoBehaviour
     public float[,] heightMap;
     public ChunkMeshData chunkMeshData;
 
-    public static readonly int CHUNK_SIZE = 32;
+    public static readonly int CHUNK_SIZE = 16;
     public static readonly int CHUNK_HEIGHT = 256;
 
     Block[,,] _blocks = new Block[CHUNK_SIZE, CHUNK_HEIGHT, CHUNK_SIZE];
+
+    private void Awake()
+    {
+        voxelMaterial = Resources.Load<Material>("Materials/DefaultVoxel");
+    }
 
     public void FillBlocksForChunk()
     {
@@ -39,7 +44,7 @@ public class Chunk : MonoBehaviour
     public void CreateBlockedMesh()
     {
         gameObject.AddComponent<MeshFilter>();
-        gameObject.AddComponent<MeshRenderer>();
+        MeshRenderer meshRenderer = gameObject.AddComponent<MeshRenderer>();
         Mesh mesh = gameObject.GetComponent<MeshFilter>().mesh;
 
         mesh.Clear();
@@ -58,7 +63,8 @@ public class Chunk : MonoBehaviour
         chunkMeshData = new ChunkMeshData();
         mesh.vertices = chunkMeshData.GetVerticesForChunk();
         mesh.triangles = chunkMeshData.GetTrianglesForChunk(mesh.vertices, heightMap);
-
+        meshRenderer.material = voxelMaterial;
+        
         gameObject.transform.position = new Vector3(0, 1, 0);
         gameObject.AddComponent<MeshCollider>();
     }
