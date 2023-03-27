@@ -15,9 +15,22 @@ public class Chunk : MonoBehaviour
 
     Block[,,] _blocks = new Block[CHUNK_SIZE, CHUNK_HEIGHT, CHUNK_SIZE];
 
+
+    MeshRenderer meshRenderer;
+    Mesh mesh;
+
+    public GameObject meshObject;
+    public GameObject renderColliderObject;
+    
     private void Awake()
     {
         voxelMaterial = Resources.Load<Material>("Materials/DefaultVoxel");
+
+        meshObject.AddComponent<MeshFilter>();
+        meshRenderer = meshObject.AddComponent<MeshRenderer>();
+        mesh = meshObject.GetComponent<MeshFilter>().mesh;
+        
+        meshObject.SetActive(false);
     }
 
     public void FillBlocksForChunk()
@@ -43,20 +56,10 @@ public class Chunk : MonoBehaviour
 
     public void CreateBlockedMesh()
     {
-        gameObject.AddComponent<MeshFilter>();
-        MeshRenderer meshRenderer = gameObject.AddComponent<MeshRenderer>();
-        Mesh mesh = gameObject.GetComponent<MeshFilter>().mesh;
-
         mesh.Clear();
 
         mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
         mesh.MarkDynamic();
-
-        int numVoxels = CHUNK_SIZE * CHUNK_HEIGHT * CHUNK_SIZE;
-        int numVertices = numVoxels * 8;
-
-        Vector3[] vertices = new Vector3[numVertices];
-        Vector2[] uvs = new Vector2[numVertices];
 
         int vertexIndex = 0;
 
@@ -65,23 +68,55 @@ public class Chunk : MonoBehaviour
         mesh.triangles = chunkMeshData.GetTrianglesForChunk(mesh.vertices, heightMap);
         meshRenderer.material = voxelMaterial;
         
-        gameObject.transform.position = new Vector3(0, 1, 0);
         gameObject.AddComponent<MeshCollider>();
     }
 
     public static Chunk InstantiateNewChunk(Vector3 chunkPosition, float[,] heightMap)
     {
-        GameObject newChunkGameObject = new GameObject();
+        GameObject newChunkGameObject = Instantiate(MeshCreationManager.instance.chunkPrefab, chunkPosition, Quaternion.identity);
         newChunkGameObject.name = "Chunk";
-        Chunk newChunk = newChunkGameObject.AddComponent<Chunk>();
-
-        newChunk.heightMap = heightMap;
-        newChunk.FillBlocksForChunk();
-        newChunk.CreateBlockedMesh();
         
-        newChunkGameObject.transform.position = chunkPosition;
+        Chunk newChunk = newChunkGameObject.GetComponent<Chunk>();
+        newChunk.heightMap = heightMap;
 
         return newChunk;
     }
 
+    public void Render()
+    {
+        Debug.Log("Rendering Chunk");
+        meshObject.SetActive(true);
+        renderColliderObject.SetActive(false);
+        
+        FillBlocksForChunk();
+        CreateBlockedMesh();
+        
+        CreateNeighBourChunksIfNotExisting();
+    }
+    
+    void CreateNeighBourChunksIfNotExisting()
+    {
+        Vector3 chunkPosition = transform.position;
+        Vector3 chunkPositionXPlus = new Vector3(chunkPosition.x + CHUNK_SIZE, chunkPosition.y, chunkPosition.z);
+        Vector3 chunkPositionXMinus = new Vector3(chunkPosition.x - CHUNK_SIZE, chunkPosition.y, chunkPosition.z);
+        Vector3 chunkPositionZPlus = new Vector3(chunkPosition.x, chunkPosition.y, chunkPosition.z + CHUNK_SIZE);
+        Vector3 chunkPositionZMinus = new Vector3(chunkPosition.x, chunkPosition.y, chunkPosition.z - CHUNK_SIZE);
+
+        if (MeshCreationManager.instance.GetChunkAtPosition(chunkPositionXPlus) == null)
+        {
+            MeshCreationManager.instance.CreateNewChunkAt(chunkPositionXPlus);
+        }
+        if (MeshCreationManager.instance.GetChunkAtPosition(chunkPositionXMinus) == null)
+        {
+            MeshCreationManager.instance.CreateNewChunkAt(chunkPositionXMinus);
+        }
+        if (MeshCreationManager.instance.GetChunkAtPosition(chunkPositionZPlus) == null)
+        {
+            MeshCreationManager.instance.CreateNewChunkAt(chunkPositionZPlus);
+        }
+        if (MeshCreationManager.instance.GetChunkAtPosition(chunkPositionZMinus) == null)
+        {
+            MeshCreationManager.instance.CreateNewChunkAt(chunkPositionZMinus);
+        }
+    }
 }

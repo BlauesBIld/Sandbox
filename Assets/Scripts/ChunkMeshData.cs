@@ -19,7 +19,6 @@ public class ChunkMeshData
                 }
             }
         }
-
         return verticesToAdd.ToArray();
     }
 
